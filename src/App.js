@@ -5,8 +5,8 @@ import BDJobs from "./tools/BDJobs";
 export default function App() {
   return (
     <>
-      {/* <FbInterestSearch /> */}
-      <BDJobs />
+      <FbInterestSearch />
+      {/* <BDJobs /> */}
     </>
   );
 }

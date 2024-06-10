@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import applicantsData from "../data/BDjobsApplicents.json";
+import applicantsData2 from "../data/BDjobsApplicents2.json";
 
 function BDJobs() {
   const [applicants, setApplicants] = useState([]);
@@ -10,7 +11,19 @@ function BDJobs() {
   });
 
   useEffect(() => {
-    setApplicants(applicantsData.Applicants);
+    // Combine old and new data, filtering out duplicates based on ApplyID
+    const oldApplicants = applicantsData.Applicants;
+    const newApplicants = applicantsData2.Applicants;
+
+    const filteredNewApplicants = newApplicants.filter(
+      (newApplicant) =>
+        !oldApplicants.some(
+          (oldApplicant) => oldApplicant.ApplyID === newApplicant.ApplyID
+        )
+    );
+
+    // Set the applicants state with combined unique applicants
+    setApplicants([...filteredNewApplicants]);
   }, []);
 
   const sortedApplicants = React.useMemo(() => {
