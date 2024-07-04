@@ -1,18 +1,22 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import Header from "../components/Header";
-import ResultsTable from "../components/ResultsTable";
-import SearchBar from "../components/SearchBar";
+import numeral from "numeral";
 
 const FbInterestSearch = () => {
   const [query, setQuery] = useState("");
   const [data, setData] = useState([]);
-  const [token, setToken] = useState("");
+  const [token, setToken] = useState(
+    "EAA0vg38JGXIBO87AovybuzZBmTlkgV05wOAoEBces2yQYmYRtSB2P2yyZAvVL88dCYCDy4apmSZC78Ec2ZCvC3GEt2sB0NjrAGdZBA4FXpQnm08A7MCmTJN4YrLh65EJSLadrSF9XkA4ER6Ew3h85l0758j13sZAU1gz2ZBPPUqMywDBxVTPIgsJAJmddKTV2CgdMHRsy3LYIxywLzrmwZDZD"
+  );
   const [loading, setLoading] = useState(false);
   const [nextPage, setNextPage] = useState("");
   const [limit, setLimit] = useState(25);
   const [mode, setMode] = useState("interest");
   const [selectedKeywords, setSelectedKeywords] = useState([]);
+  const [sortConfig, setSortConfig] = useState({
+    key: null,
+    direction: "ascending",
+  });
 
   useEffect(() => {
     const savedToken = localStorage.getItem("fb_access_token");
@@ -67,29 +71,115 @@ const FbInterestSearch = () => {
     );
   };
 
-  return (
-    <div className="container mx-auto p-4">
-      <Header handleTokenChange={handleTokenChange} token={token} />
-      <SearchBar
-        query={query}
-        setQuery={setQuery}
-        handleSearch={handleSearch}
-        limit={limit}
-        setLimit={setLimit}
-        mode={mode}
-        setMode={setMode}
-      />
+  const sortedData = React.useMemo(() => {
+    let sortableItems = [...data];
+    if (sortConfig !== null) {
+      sortableItems.sort((a, b) => {
+        if (a[sortConfig.key] < b[sortConfig.key]) {
+          return sortConfig.direction === "ascending" ? -1 : 1;
+        }
+        if (a[sortConfig.key] > b[sortConfig.key]) {
+          return sortConfig.direction === "ascending" ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableItems;
+  }, [data, sortConfig]);
 
-      {/* Filter section with the limit setter and ammount of response info.   */}
-      {loading && <p>Loading...</p>}
-      {data.length > 0 && (
-        <ResultsTable
-          data={data}
-          handleSearch={handleSearch}
-          nextPage={nextPage}
-          handleSelect={handleSelect}
+  const requestSort = (key) => {
+    let direction = "ascending";
+    if (sortConfig.key === key && sortConfig.direction === "ascending") {
+      direction = "descending";
+    }
+    setSortConfig({ key, direction });
+  };
+
+  console.log(sortedData);
+
+  return (
+    <div className="container mx-auto p-5">
+      <h1 className="text-2xl font-bold text-center mb-5">
+        FB Interest Search
+      </h1>
+      <div className="flex items-center mb-4">
+        <button
+          className="bg-blue-500 text-white px-4 py-2 rounded mr-4"
+          onClick={handleTokenChange}
+        >
+          Change Token
+        </button>
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search interests..."
+          className="border border-gray-300 px-4 py-2 rounded w-full"
         />
+        <button
+          className="bg-green-500 text-white px-4 py-2 rounded ml-4"
+          onClick={() => handleSearch()}
+        >
+          Search
+        </button>
+      </div>
+
+      {loading && <p>Loading...</p>}
+
+      {sortedData.length > 0 && (
+        <div className="overflow-x-auto">
+          <table className="table-auto w-full">
+            <thead className="text-xs text-left text-gray-700 uppercase bg-gray-50">
+              <tr>
+                <th
+                  className="px-6 py-3 cursor-pointer"
+                  onClick={() => requestSort("name")}
+                >
+                  Name
+                </th>
+                <th
+                  className="px-6 py-3 cursor-pointer"
+                  onClick={() => requestSort("path")}
+                >
+                  Path
+                </th>
+                <th
+                  className="px-6 py-3 cursor-pointer"
+                  onClick={() => requestSort("audience_size_upper_bound")}
+                >
+                  Audience Size
+                </th>
+                <th
+                  className="px-6 py-3 cursor-pointer"
+                  onClick={() => requestSort("topic")}
+                >
+                  Topic
+                </th>
+                <th
+                  className="px-6 py-3 cursor-pointer"
+                  onClick={() => requestSort("disambiguation_category")}
+                >
+                  Disambiguation Category
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {sortedData.map((item, index) => (
+                <tr key={item.id} className="text-sm text-gray-700">
+                  <td className="px-6 py-4">{item.name}</td>
+                  <td className="px-6 py-4">
+                    {item.path ? item.path.join(" > ") : ""}
+                  </td>
+                  <td className="px-6 py-4">{`${numeral(item.audience_size_lower_bound).format('Oa')}-${numeral(item.audience_size_upper_bound).format('Oa')}`}</td>
+                  <td className="px-6 py-4">{item.topic}</td>
+                  <td className="px-6 py-4">{item.disambiguation_category}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
+
       {selectedKeywords.length > 0 && (
         <div className="mt-4">
           <h2 className="text-xl font-bold">Selected Keywords</h2>
