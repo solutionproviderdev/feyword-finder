@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { BsCheck2, BsCopy } from "react-icons/bs";
-import { FaCopy } from "react-icons/fa";
+import { BsCheck2, BsCopy, BsTrash3 } from "react-icons/bs";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 
-const SelectedKeywordsTable = ({ selectedKeywords }) => {
+const SelectedKeywordsTable = ({ selectedKeywords, handleRemove }) => {
   const [copiedText, setCopiedText] = useState(null);
 
   // Copy to clipboard
@@ -12,6 +13,10 @@ const SelectedKeywordsTable = ({ selectedKeywords }) => {
     const timer = setTimeout(() => setCopiedText(null), 1000);
     return () => clearTimeout(timer);
   };
+
+  if (selectedKeywords.length === 0) {
+    return <Skeleton count={5} height={40} className="my-4" />;
+  }
 
   return (
     <div className="mt-4">
@@ -23,28 +28,35 @@ const SelectedKeywordsTable = ({ selectedKeywords }) => {
               <th className="px-6 py-3">Name</th>
               <th className="px-6 py-3">Path</th>
               <th className="px-6 py-3">Topic</th>
+              <th className="px-6 py-3">Delete</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {selectedKeywords.map((item) => (
               <tr key={item.id} className="text-sm text-gray-700">
                 <td className="px-6 py-4 flex items-center justify-between">
-                {item.name}
-                <button
-                  className="ml-2 text-gray-500"
-                  onClick={() => handleCopy(item.name)}
-                >
-                  {copiedText && copiedText === item.name ? (
-                    <BsCheck2 />
-                  ) : (
-                    <BsCopy />
-                  )}
-                </button>
-              </td>
+                  {item.name}
+                  <button
+                    className="ml-2 text-gray-500"
+                    onClick={() => handleCopy(item.name)}
+                  >
+                    {copiedText && copiedText === item.name ? (
+                      <BsCheck2 />
+                    ) : (
+                      <BsCopy />
+                    )}
+                  </button>
+                </td>
                 <td className="px-6 py-4">
                   {item.path ? item.path.join(" > ") : ""}
                 </td>
                 <td className="px-6 py-4">{item.topic}</td>
+                <td
+                  className="px-6 py-4 cursor-pointer"
+                  onClick={() => handleRemove(item.id)}
+                >
+                  <BsTrash3 />
+                </td>
               </tr>
             ))}
           </tbody>

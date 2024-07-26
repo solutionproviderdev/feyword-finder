@@ -1,12 +1,15 @@
 import numeral from "numeral";
 import React, { useState } from "react";
 import { BsCheck2, BsCopy } from "react-icons/bs";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 
 export default function DataTable({
   requestSort,
   data,
   selectedKeywords,
   onSelect,
+  loading,
 }) {
   const [copiedText, setCopiedText] = useState(null);
 
@@ -17,6 +20,14 @@ export default function DataTable({
     const timer = setTimeout(() => setCopiedText(null), 1000);
     return () => clearTimeout(timer);
   };
+
+  if (loading) {
+    return (
+      <div className="overflow-x-auto">
+        <Skeleton count={5} height={40} className="my-4" />
+      </div>
+    );
+  }
 
   return (
     <div className="overflow-x-auto">
@@ -59,7 +70,7 @@ export default function DataTable({
         <tbody className="bg-white divide-y divide-gray-200">
           {data.map((item) => (
             <tr key={item.id} className="text-sm text-gray-700">
-              <td className="px-6 py-4">
+              <td className="px-6 py-4 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={selectedKeywords.some((key) => key.id === item.id)}

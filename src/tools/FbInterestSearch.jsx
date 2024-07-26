@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import SelectedKeywordsTable from "../components/SelectedKeywordsTable";
 import DataTable from "../components/DataTable";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 
 const FbInterestSearch = () => {
   const [query, setQuery] = useState("");
@@ -67,12 +69,18 @@ const FbInterestSearch = () => {
     setLoading(false);
   };
 
+  // Add to selected table
   const handleSelect = (keyword) => {
     setSelectedKeywords((prev) =>
       prev.some((key) => key.id === keyword.id)
         ? prev.filter((key) => key.id !== keyword.id)
         : [...prev, keyword]
     );
+  };
+
+  // remove from selected table.
+  const handleRemove = (id) => {
+    setSelectedKeywords((prev) => prev.filter((key) => key.id !== id));
   };
 
   // Sorting
@@ -99,8 +107,6 @@ const FbInterestSearch = () => {
     }
     setSortConfig({ key, direction });
   };
-
-  
 
   return (
     <div className="container mx-auto p-5">
@@ -133,19 +139,21 @@ const FbInterestSearch = () => {
       {selectedKeywords.length > 0 && (
         <SelectedKeywordsTable
           selectedKeywords={selectedKeywords}
-          // onCopy={handleCopy}
+          handleRemove={handleRemove}
         />
       )}
 
-      {loading && <p>Loading...</p>}
-
-      {sortedData.length > 0 && (
-        <DataTable
-          data={sortedData}
-          requestSort={requestSort}
-          selectedKeywords={selectedKeywords}
-          onSelect={handleSelect}
-        />
+      {loading ? (
+        <Skeleton count={5} height={40} className="my-4" />
+      ) : (
+        sortedData.length > 0 && (
+          <DataTable
+            data={sortedData}
+            requestSort={requestSort}
+            selectedKeywords={selectedKeywords}
+            onSelect={handleSelect}
+          />
+        )
       )}
     </div>
   );
