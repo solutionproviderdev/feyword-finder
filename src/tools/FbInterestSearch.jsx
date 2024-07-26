@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import numeral from "numeral";
+import SelectedKeywordsTable from "../components/SelectedKeywordsTable";
+import DataTable from "../components/DataTable";
 
 const FbInterestSearch = () => {
   const [query, setQuery] = useState("");
@@ -33,6 +34,7 @@ const FbInterestSearch = () => {
     }
   };
 
+  // query and get data
   const handleSearch = async (next = false) => {
     if (!token) {
       alert("Please add your access token first.");
@@ -65,12 +67,15 @@ const FbInterestSearch = () => {
     setLoading(false);
   };
 
-  const handleSelect = (id) => {
+  const handleSelect = (keyword) => {
     setSelectedKeywords((prev) =>
-      prev.includes(id) ? prev.filter((key) => key !== id) : [...prev, id]
+      prev.some((key) => key.id === keyword.id)
+        ? prev.filter((key) => key.id !== keyword.id)
+        : [...prev, keyword]
     );
   };
 
+  // Sorting
   const sortedData = React.useMemo(() => {
     let sortableItems = [...data];
     if (sortConfig !== null) {
@@ -95,7 +100,7 @@ const FbInterestSearch = () => {
     setSortConfig({ key, direction });
   };
 
-  console.log(sortedData);
+  
 
   return (
     <div className="container mx-auto p-5">
@@ -115,6 +120,7 @@ const FbInterestSearch = () => {
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search interests..."
           className="border border-gray-300 px-4 py-2 rounded w-full"
+          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
         />
         <button
           className="bg-green-500 text-white px-4 py-2 rounded ml-4"
@@ -124,72 +130,22 @@ const FbInterestSearch = () => {
         </button>
       </div>
 
+      {selectedKeywords.length > 0 && (
+        <SelectedKeywordsTable
+          selectedKeywords={selectedKeywords}
+          // onCopy={handleCopy}
+        />
+      )}
+
       {loading && <p>Loading...</p>}
 
       {sortedData.length > 0 && (
-        <div className="overflow-x-auto">
-          <table className="table-auto w-full">
-            <thead className="text-xs text-left text-gray-700 uppercase bg-gray-50">
-              <tr>
-                <th
-                  className="px-6 py-3 cursor-pointer"
-                  onClick={() => requestSort("name")}
-                >
-                  Name
-                </th>
-                <th
-                  className="px-6 py-3 cursor-pointer"
-                  onClick={() => requestSort("path")}
-                >
-                  Path
-                </th>
-                <th
-                  className="px-6 py-3 cursor-pointer"
-                  onClick={() => requestSort("audience_size_upper_bound")}
-                >
-                  Audience Size
-                </th>
-                <th
-                  className="px-6 py-3 cursor-pointer"
-                  onClick={() => requestSort("topic")}
-                >
-                  Topic
-                </th>
-                <th
-                  className="px-6 py-3 cursor-pointer"
-                  onClick={() => requestSort("disambiguation_category")}
-                >
-                  Disambiguation Category
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {sortedData.map((item, index) => (
-                <tr key={item.id} className="text-sm text-gray-700">
-                  <td className="px-6 py-4">{item.name}</td>
-                  <td className="px-6 py-4">
-                    {item.path ? item.path.join(" > ") : ""}
-                  </td>
-                  <td className="px-6 py-4">{`${numeral(item.audience_size_lower_bound).format('Oa')}-${numeral(item.audience_size_upper_bound).format('Oa')}`}</td>
-                  <td className="px-6 py-4">{item.topic}</td>
-                  <td className="px-6 py-4">{item.disambiguation_category}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {selectedKeywords.length > 0 && (
-        <div className="mt-4">
-          <h2 className="text-xl font-bold">Selected Keywords</h2>
-          <ul>
-            {selectedKeywords.map((id) => {
-              const keyword = data.find((item) => item.id === id);
-              return <li key={id}>{keyword ? keyword.name : "Unknown"}</li>;
-            })}
-          </ul>
-        </div>
+        <DataTable
+          data={sortedData}
+          requestSort={requestSort}
+          selectedKeywords={selectedKeywords}
+          onSelect={handleSelect}
+        />
       )}
     </div>
   );
