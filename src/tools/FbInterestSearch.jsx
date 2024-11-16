@@ -155,9 +155,10 @@ const FbInterestSearch = () => {
 								Search Results
 							</h2>
 							<DataTable
-								data={data}
-								selectedKeywords={selectedKeywords}
-								onSelect={handleSelect}
+								data={data} // Pass your array of objects
+								selectedKeywords={selectedKeywords} // Pass the selected keywords
+								onSelect={handleSelect} // Handle item selection
+								loading={false} // Set loading state
 							/>
 						</>
 					) : (
